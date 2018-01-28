@@ -32,4 +32,7 @@ func TestCreateTable(t *testing.T) {
 	vals = append(vals, 1) // WHERE value...
 	fmt.Println(str)
 	fmt.Println(vals)
+
+	str = sqlm.Get(tbl, "WHERE id = ?")
+	fmt.Println(str)
 }

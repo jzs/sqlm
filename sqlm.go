@@ -121,6 +121,43 @@ func Update(i Table, where string) (string, []interface{}) {
 
 }
 
+func Get(i Table, stmt string) string {
+	t := reflect.TypeOf(i)
+	val := reflect.ValueOf(i)
+
+	keys := ""
+	vals := []interface{}{}
+
+	cnt := -1
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		cnt++
+
+		v := val.FieldByName(f.Name)
+		vals = append(vals, v.Interface())
+
+		fname := f.Tag.Get("db")
+		if fname == "" {
+			fname = f.Name
+		}
+
+		if cnt == 0 {
+			keys = fmt.Sprintf("%v", fname)
+			continue
+		}
+		keys = fmt.Sprintf("%v, %v", keys, fname)
+	}
+
+	str := fmt.Sprintf("SELECT %v FROM %v", keys, i.Table())
+
+	if stmt != "" {
+		str = fmt.Sprintf("%v %v", str, stmt)
+	}
+
+	return str
+
+}
+
 // DropTable generates an sql string to drop table based on a struct
 func DropTable(i Table) string {
 	str := fmt.Sprintf("DROP TABLE IF EXISTS %v", i.Table())
