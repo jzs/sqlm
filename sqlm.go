@@ -64,12 +64,12 @@ func Insert(i Table) (string, []interface{}) {
 		}
 
 		if cnt == 0 {
-			keys = fmt.Sprintf("'%v'", fname)
-			values = fmt.Sprintf("?")
+			keys = fmt.Sprintf("%v", fname)
+			values = fmt.Sprintf("$%v", cnt+1)
 			continue
 		}
-		keys = fmt.Sprintf("%v, '%v'", keys, fname)
-		values = fmt.Sprintf("%v,?", values)
+		keys = fmt.Sprintf("%v, %v", keys, fname)
+		values = fmt.Sprintf("%v,$%v", values, cnt+1)
 	}
 
 	str = fmt.Sprintf("%v (%v) VALUES (%v)", str, keys, values)
@@ -105,10 +105,10 @@ func Update(i Table, where string) (string, []interface{}) {
 		}
 
 		if cnt == 0 {
-			keys = fmt.Sprintf("'%v' = ?", fname)
+			keys = fmt.Sprintf("%v = $%v", fname, cnt+1)
 			continue
 		}
-		keys = fmt.Sprintf("%v, '%v' = ?", keys, fname)
+		keys = fmt.Sprintf("%v, %v = $%v", keys, fname, cnt+1)
 	}
 
 	str = fmt.Sprintf("%v %v", str, keys)
