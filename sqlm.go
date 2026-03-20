@@ -36,7 +36,7 @@ func CreateTable(i Table) string {
 
 // Insert creates an insert statement for updating all columns. (Ignores bigserial column for now)
 // Returns an sql string and the associated values based on the contents on the struct.
-func Insert(i Table) (string, []interface{}) {
+func Insert(i Table) (string, []any) {
 	t := reflect.TypeOf(i)
 	val := reflect.ValueOf(i)
 
@@ -121,9 +121,34 @@ func Update(i Table, where string) (string, []interface{}) {
 
 }
 
-func Get(i Table, stmt string) string {
-	t := reflect.TypeOf(i)
-	val := reflect.ValueOf(i)
+func GetSlice(i any, stmt string) string {
+	val := reflect.Indirect(reflect.ValueOf(i))
+	t := val.Type()
+	et := t
+	if t.Kind() == reflect.Slice {
+		et = t.Elem()
+		val = reflect.Indirect(reflect.New(et)).Addr()
+	}
+	return ""
+}
+
+func Get(i any, stmt string) string {
+	val := reflect.Indirect(reflect.ValueOf(i))
+	t := val.Type()
+	if t.Kind() == reflect.Slice {
+		t = t.Elem()
+		if t.Kind() == reflect.Pointer {
+			t = t.Elem()
+		}
+		val = reflect.Indirect(reflect.New(t))
+	}
+
+	tableMethod := val.MethodByName("Table")
+	if tableMethod.IsZero() {
+		panic("struct does not implement the Table interface")
+	}
+	tableValue := tableMethod.Call([]reflect.Value{})[0]
+	table := tableValue.String()
 
 	keys := ""
 	vals := []interface{}{}
@@ -148,7 +173,7 @@ func Get(i Table, stmt string) string {
 		keys = fmt.Sprintf("%v, %v", keys, fname)
 	}
 
-	str := fmt.Sprintf("SELECT %v FROM %v", keys, i.Table())
+	str := fmt.Sprintf("SELECT %v FROM %v", keys, table)
 
 	if stmt != "" {
 		str = fmt.Sprintf("%v %v", str, stmt)

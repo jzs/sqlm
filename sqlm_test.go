@@ -36,3 +36,32 @@ func TestCreateTable(t *testing.T) {
 	str = sqlm.Get(tbl, "WHERE id = ?")
 	fmt.Println(str)
 }
+
+var expected string = "SELECT id, token, Expires FROM shopgun_auth"
+
+func TestGetTableSlicePointers(t *testing.T) {
+	tbl := []struct {
+		In any
+	}{
+		{In: &SliceTestStruct{ID: 132}},
+		{In: SliceTestStruct{ID: 132}},
+		{In: []SliceTestStruct{}},
+		{In: []*SliceTestStruct{}},
+	}
+	for _, test := range tbl {
+		r := sqlm.Get(test.In, "")
+		if r != expected {
+			t.Fatalf("expect: %v, got %v", expected, r)
+		}
+	}
+}
+
+type SliceTestStruct struct {
+	ID      uint64    `db:"id" type:"BIGSERIAL PRIMARY KEY NOT NULL"`
+	Token   string    `db:"token" type:"text NOT NULL"`
+	Expires time.Time `type:"timestamp NOT NULL"`
+}
+
+func (d SliceTestStruct) Table() string {
+	return "shopgun_auth"
+}
