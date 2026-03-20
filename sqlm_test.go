@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sketchground/sqlm"
+	"github.com/jzs/sqlm"
 )
 
 // DBShopgunAuth struct to represent an auth token
